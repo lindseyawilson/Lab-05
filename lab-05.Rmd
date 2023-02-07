@@ -14,36 +14,91 @@ library(dsbox)
 
 ```{r load-data, message = FALSE}
 states <- read_csv("data/states.csv")
+dn <- dennys
+lq <- laquinta
 ```
 
 ### Exercise 1
 
-Remove this text, and add your answer for Exercise 1 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+The code below gives the number of Denny's locations in Alaska:
+
+```{r dennys-in-alaska}
+dn_ak <- dn %>%
+  filter(state == "AK")
+message("There are ", nrow(dn_ak), " Denny's locations in Alaska")
+```
 
 ### Exercise 2
 
-Remove this text, and add your answer for Exercise 1 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+And this tells us how many La Quinta locations are in Alaska: 
+
+```{r laquinta-in-alaska}
+lq_ak <- lq %>%
+  filter(state == "AK")
+message("There are ", nrow(lq_ak), " La Quinta locations in Alaska")
+```
 
 ### Exercise 3
 
-...
+Since there are 3 Denny's and 2 La Quinta's in Alaska, if we want to calculate the distances between each pair of Denny's and La Quinta then in total we'll need to calculate 6 distances.
 
 ### Exercise 4
 
-...
+Below we've used `full_join()` to put together the `dn_ak` and `lq_ak` datasets:
+
+```{r full-join}
+dn_lq_ak <- full_join(dn_ak, lq_ak, by = "state")
+dn_lq_ak
+```
+This code tells us how many observations are in our newly created dataset, along with the names of the columns
+
+```{r}
+message("There are ", nrow(dn_lq_ak), " observations in the dn_lq_ak dataset")
+names(dn_lq_ak)
+```
 
 ### Exercise 5
 
-...
+It looks like each row represents a Denny's/La Quinta pair, so to get the distances between each pair we can just calculate a distance column for each row. We would do this with the `mutate()` function.
 
 ### Exercise 6
 
-...
+This code creates a function to calculate distance for each row:
 
-Add exercise headings as needed.
+```{r distance function}
+haversine <- function(long1, lat1, long2, lat2, round = 3) {
+  # convert to radians
+  long1 = long1 * pi / 180
+  lat1  = lat1  * pi / 180
+  long2 = long2 * pi / 180
+  lat2  = lat2  * pi / 180
+  
+  R = 6371 # Earth mean radius in km
+  
+  a = sin((lat2 - lat1)/2)^2 + cos(lat1) * cos(lat2) * sin((long2 - long1)/2)^2
+  d = R * 2 * asin(sqrt(a))
+  
+  return( round(d,round) ) # distance in km
+}
+```
+
+Which allows us to calculate a distance variable for each row in `dn_lq_ak`:
+
+```{r calculate-distance}
+dn_lq_ak <- dn_lq_ak %>%
+  mutate(distance = haversine(longitude.x,
+                              latitude.x,
+                              longitude.y,
+                              latitude.y
+                              ))
+```
+
+
+
+
+
+
+
+
+
+
