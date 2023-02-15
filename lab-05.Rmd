@@ -93,12 +93,175 @@ dn_lq_ak <- dn_lq_ak %>%
                               ))
 ```
 
+### Exercise 7
 
+The code below generates a data frame that has one observation for each Denny's location, along with the distance to the closest La Quinta:
 
+```{r minimum-distance}
+dn_lq_ak_mindist <- dn_lq_ak %>%
+  group_by(address.x) %>%
+  summarize(closest = min(distance))
+```
 
+### Exercise 8
 
+We can use the data frame we generated in exercise 7 to summarize the distribution of distances between Denny's and the nearest La Quinta:
 
+```{r min-distance-summary}
+ggplot(data = dn_lq_ak_mindist, mapping = aes(x = closest)) + 
+  geom_histogram(aes(y = after_stat(density)),
+                     binwidth = 2, 
+                     fill = "Blue") + 
+  geom_density()
 
+message("Mean = ", mean(dn_lq_ak_mindist$closest), " miles.")
+message("SD = ", sd(dn_lq_ak_mindist$closest), " miles.")
+```
 
+With only 3 Denny's locations we can't say much about the shape of the distribution, but the descriptives at least make it seem like Denny's and La Quinta locations are pretty close together.
 
+### Exercise 9
 
+We're now going to repeat this analysis pipeline for the state of North Carolina.
+The code to do that is below:
+
+```{r NC-analysis}
+#Filters Denny's for NC locations
+dn_nc <- dn %>%
+  filter(state == "NC")
+
+#Filter La Quinta for NC locations
+lq_nc <- lq %>%
+  filter(state == "NC")
+
+#Join dn_nc and lq_nc datasets by state
+dn_lq_nc <- full_join(dn_nc, lq_nc, by = "state")
+
+#Calculate distances between all Dennys-LaQuinta pairs
+dn_lq_nc <- dn_lq_nc %>%
+  mutate(distance = haversine(longitude.x,
+                              latitude.x,
+                              longitude.y,
+                              latitude.y
+                              ))
+
+#Find minimum distance to a La Quinta for each Denny's
+dn_lq_nc_mindist <- dn_lq_nc %>%
+  group_by(address.x) %>%
+  summarize(closest = min(distance))
+
+#Histogram and descriptives of minimum distances 
+#(horrible yellow and purple graph is on purpose)
+ggplot(data = dn_lq_nc_mindist, mapping = aes(x = closest)) + 
+  geom_histogram(aes(y = after_stat(density)),
+                 binwidth = 30, 
+                 fill = "Yellow") + 
+  geom_density() +
+  theme(panel.background = element_rect(fill = "Purple"))
+
+message("Mean = ", mean(dn_lq_nc_mindist$closest), " miles.")
+message("SD = ", sd(dn_lq_nc_mindist$closest), " miles.")
+
+```
+
+Right away we can see from this analysis that there are many more Denny's locations in NC than in Alaska, and that on average they're much further away from the nearest La Quinta.
+However, it doesn't really feel valid to compare the two states because, again, there were only 3 Denny's locations in Alaska at all.
+
+### Exercise 10
+
+Let's repeat the same analysis for Texas:
+
+```{r TX-analysis}
+#Filters Denny's for TX locations
+dn_tx <- dn %>%
+  filter(state == "TX")
+
+#Filter La Quinta for TX locations
+lq_tx <- lq %>%
+  filter(state == "TX")
+
+#Join dn_tx and lq_tx datasets by state
+dn_lq_tx <- full_join(dn_tx, lq_tx, by = "state")
+
+#Calculate distances between all Dennys-LaQuinta pairs
+dn_lq_tx <- dn_lq_tx %>%
+  mutate(distance = haversine(longitude.x,
+                              latitude.x,
+                              longitude.y,
+                              latitude.y
+                              ))
+
+#Find minimum distance to a La Quinta for each Denny's
+dn_lq_tx_mindist <- dn_lq_tx %>%
+  group_by(address.x) %>%
+  summarize(closest = min(distance))
+
+#Histogram and descriptives of minimum distances 
+ggplot(data = dn_lq_tx_mindist, mapping = aes(x = closest)) + 
+  geom_histogram(aes(y = after_stat(density)),
+                 binwidth = 3, 
+                 fill = "Blue") + 
+  geom_density()
+  
+message("Mean = ", mean(dn_lq_tx_mindist$closest), " miles.")
+message("SD = ", sd(dn_lq_tx_mindist$closest), " miles.")
+
+```
+
+### Exercise 11
+
+And for California:
+
+```{r CA-analysis}
+#Filters Denny's for CA locations
+dn_ca <- dn %>%
+  filter(state == "CA")
+
+#Filter La Quinta for CA locations
+lq_ca <- lq %>%
+  filter(state == "CA")
+
+#Join dn_ca and lq_ca datasets by state
+dn_lq_ca <- full_join(dn_ca, lq_ca, by = "state")
+
+#Calculate distances between all Dennys-LaQuinta pairs
+dn_lq_ca <- dn_lq_ca %>%
+  mutate(distance = haversine(longitude.x,
+                              latitude.x,
+                              longitude.y,
+                              latitude.y
+                              ))
+
+#Find minimum distance to a La Quinta for each Denny's
+dn_lq_ca_mindist <- dn_lq_ca %>%
+  group_by(address.x) %>%
+  summarize(closest = min(distance))
+
+#Histogram and descriptives of minimum distances 
+ggplot(data = dn_lq_ca_mindist, mapping = aes(x = closest)) + 
+  geom_histogram(aes(y = after_stat(density)),
+                 binwidth = 5, 
+                 fill = "Blue") + 
+  geom_density()
+  
+message("Mean = ", mean(dn_lq_ca_mindist$closest), " miles.")
+message("SD = ", sd(dn_lq_ca_mindist$closest), " miles.")
+
+```
+
+### Exercise 12
+
+From these analyses, it looks like Texas is the state where the Mitch Hedberg joke seems the most applicable.
+It has enough observations to be able to draw solid conclusions about it (unlike Alaska), and it has both the smallest mean Dennys-to-La Quinta distance and the smallest standard deviation.
+The distribution of minimum distances is also extremely positively skewed (not unlike the others), meaning that the actual center of the minimum distance distribution is likely somewhat smaller than the mean is indicating.
+
+Just to drive that intuition home, we can calculate the median distances below:
+
+```{r medians}
+message("NC median = ", median(dn_lq_nc_mindist$closest), " miles") +
+message("TX median = ", median(dn_lq_tx_mindist$closest), " miles") +
+message("CA median = ", median(dn_lq_ca_mindist$closest),  " miles")
+```
+
+So. there we have it. 
+"La Quinta" is Spanish for "next to a Dennys", but that's especially true in Texas. 
